@@ -15,12 +15,14 @@ class RenderSliverStickyHeader extends RenderSliver with RenderSliverHelpers {
     RenderObject header,
     RenderSliver child,
     overlapsContent: false,
+    this.extraStickySpace: 0
   })  : assert(overlapsContent != null),
         _overlapsContent = overlapsContent {
     this.header = header;
     this.child = child;
   }
 
+  double extraStickySpace;
   SliverStickyHeaderState _oldState;
   double _headerExtent;
   bool _isPinned;
@@ -222,13 +224,27 @@ class RenderSliverStickyHeader extends RenderSliver with RenderSliverHelpers {
               constraints.scrollOffset -
               (overlapsContent ? _headerExtent : 0.0));
 
+      // variable definition
+      // geometry.paintExtent: total paint height for this header+child
+      // childScrollExtent: total height for child
+      // constraints.scrollOffset: the offset from its parent (the frame of whole header+child)
+      // constraints.viewportMainAxisExtent: viewport height
+      double vdiff = 0;
+      double stickyVdiff;
+      if (childScrollExtent > 0 && constraints.remainingPaintExtent + extraStickySpace >= constraints.viewportMainAxisExtent) {
+        stickyVdiff = childScrollExtent - constraints.scrollOffset;
+        vdiff = extraStickySpace - (constraints.viewportMainAxisExtent - constraints.remainingPaintExtent);
+        if (vdiff > 0)
+          headerPosition += vdiff;
+      }
+
       _isPinned = (constraints.scrollOffset + constraints.overlap) > 0.0 ||
           constraints.remainingPaintExtent ==
               constraints.viewportMainAxisExtent;
       // second layout if scroll percentage changed and header is a RenderStickyHeaderLayoutBuilder.
       if (header is RenderStickyHeaderLayoutBuilder) {
         double scrollPercentage =
-            ((headerPosition - constraints.overlap).abs() / _headerExtent)
+            ((headerPosition - constraints.overlap - vdiff).abs() / _headerExtent)
                 .clamp(0.0, 1.0);
 
         SliverStickyHeaderState state =
@@ -251,7 +267,8 @@ class RenderSliverStickyHeader extends RenderSliver with RenderSliverHelpers {
               0.0, geometry.paintExtent - headerPosition - _headerExtent);
           break;
         case AxisDirection.down:
-          headerParentData.paintOffset = new Offset(0.0, headerPosition);
+          headerParentData.paintOffset = new Offset(0.0, headerPosition - (stickyVdiff != null && stickyVdiff <= extraStickySpace
+            ? (stickyVdiff > 0 ? extraStickySpace - stickyVdiff : extraStickySpace) : 0));
           break;
         case AxisDirection.left:
           headerParentData.paintOffset = new Offset(

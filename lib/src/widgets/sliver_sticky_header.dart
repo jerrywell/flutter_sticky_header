@@ -50,6 +50,7 @@ class SliverStickyHeader extends RenderObjectWidget {
     this.header,
     this.sliver,
     this.overlapsContent: false,
+    this.extraStickySpace: 0
   })  : assert(overlapsContent != null),
         super(key: key);
 
@@ -63,10 +64,13 @@ class SliverStickyHeader extends RenderObjectWidget {
   /// instead of before.
   final bool overlapsContent;
 
+  final double extraStickySpace;
+
   @override
   RenderSliverStickyHeader createRenderObject(BuildContext context) {
     return new RenderSliverStickyHeader(
       overlapsContent: overlapsContent,
+      extraStickySpace: extraStickySpace
     );
   }
 
@@ -77,7 +81,9 @@ class SliverStickyHeader extends RenderObjectWidget {
   @override
   void updateRenderObject(
       BuildContext context, RenderSliverStickyHeader renderObject) {
-    renderObject..overlapsContent = overlapsContent;
+    renderObject
+      ..overlapsContent = overlapsContent
+      ..extraStickySpace = extraStickySpace;
   }
 }
 
@@ -97,6 +103,7 @@ class SliverStickyHeaderBuilder extends StatelessWidget {
     @required this.builder,
     this.sliver,
     this.overlapsContent: false,
+    this.extraStickySpace: 0
   })  : assert(builder != null),
         assert(overlapsContent != null),
         super(key: key);
@@ -114,6 +121,8 @@ class SliverStickyHeaderBuilder extends StatelessWidget {
   /// instead of before.
   final bool overlapsContent;
 
+  final double extraStickySpace;
+
   @override
   Widget build(BuildContext context) {
     return new SliverStickyHeader(
@@ -122,6 +131,7 @@ class SliverStickyHeaderBuilder extends StatelessWidget {
       header: new StickyHeaderLayoutBuilder(
         builder: (context, constraints) => builder(context, constraints.state),
       ),
+      extraStickySpace: extraStickySpace,
     );
   }
 }
